@@ -3,6 +3,7 @@
 UTF8 validation module
 """
 
+
 def validUTF8(data):
     """
     Validates if data consists of
