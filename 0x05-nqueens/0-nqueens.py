@@ -1,134 +1,76 @@
 #!/usr/bin/python3
-"""Solves the N-queens puzzle.
-Determines all possible solutions to placing N
-N non-attacking queens on an NxN chessboard.
-Example:
-    $ ./101-nqueens.py N
-N must be an integer greater than or equal to 4.
-Attributes:
-    board (list): A list of lists representing the chessboard.
-    solutions (list): A list of lists containing solutions.
-Solutions are represented in the format [[r, c], [r, c], [r, c], [r, c]]
-where `r` and `c` represent the row and column, respectively, where a
-queen must be placed on the chessboard.
 """
+N queens problem
+- Approach: Backtracking
+    - Use backtracking to find all possible paths
+    - Check if the path is valid
+        - Check if the column is valid
+        - Check if the positive diagonal is valid
+        - Check if the negative diagonal is valid
+    - Add the queen's location to the path
+    - Continue if the path is valid until we reach the end of the board
+    - Backtrack if the path is not valid and try another path
+    - Add path to the result if we reach the end of the board
+- Analysis:
+    - Time: O(n!) - n is the number of queens
+        - We have n choices for the first queen, n - 1 choices for the
+          second queen,n - 2 choices for the third queen, etc.
+    - Space: O(n^2) - n is the number of queens
+"""
+
 import sys
 
 
-def init_board(n):
-    """Initialize an `n`x`n` sized chessboard with 0's."""
-    board = []
-    [board.append([]) for i in range(n)]
-    [row.append(' ') for i in range(n) for row in board]
-    return (board)
+def n_queens(n):
+    """ N queens solution """
+    queens, res = [], []
+    cols, positive_diag, negative_diag = set(), set(), set()
+
+    def backtrack(row, n, queens):
+        """ Backtracking function """
+        if row == n:
+            res.append(queens[:])
+            return
+        for col in range(n):
+            if (col in cols or row + col in positive_diag or
+                    row - col in negative_diag):
+                continue
+            cols.add(col)
+            positive_diag.add(row + col)
+            negative_diag.add(row - col)
+            queens.append([row, col])
+            backtrack(row + 1, n, queens)
+
+            cols.remove(col)
+            positive_diag.remove(row + col)
+            negative_diag.remove(row - col)
+            queens.pop()
+    backtrack(0, n, queens)
+    return res
 
 
-def board_deepcopy(board):
-    """Return a deepcopy of a chessboard."""
-    if isinstance(board, list):
-        return list(map(board_deepcopy, board))
-    return (board)
+def check_args(n):
+    """ Check if n is a valid argument """
+    if not n.isdigit():
+        print("N must be a number")
+        exit(1)
+    if int(n) < 4:
+        print("N must be at least 4")
+        exit(1)
 
 
-def get_solution(board):
-    """Return the list of lists representation of a solved chessboard."""
-    solution = []
-    for r in range(len(board)):
-        for c in range(len(board)):
-            if board[r][c] == "Q":
-                solution.append([r, c])
-                break
-    return (solution)
-
-
-def xout(board, row, col):
-    """X out spots on a chessboard.
-    All spots where non-attacking queens can no
-    longer be played are X-ed out.
-    Args:
-        board (list): The current working chessboard.
-        row (int): The row where a queen was last played.
-        col (int): The column where a queen was last played.
-    """
-    # X out all forward spots
-    for c in range(col + 1, len(board)):
-        board[row][c] = "x"
-    # X out all backwards spots
-    for c in range(col - 1, -1, -1):
-        board[row][c] = "x"
-    # X out all spots below
-    for r in range(row + 1, len(board)):
-        board[r][col] = "x"
-    # X out all spots above
-    for r in range(row - 1, -1, -1):
-        board[r][col] = "x"
-    # X out all spots diagonally down to the right
-    c = col + 1
-    for r in range(row + 1, len(board)):
-        if c >= len(board):
-            break
-        board[r][c] = "x"
-        c += 1
-    # X out all spots diagonally up to the left
-    c = col - 1
-    for r in range(row - 1, -1, -1):
-        if c < 0:
-            break
-        board[r][c]
-        c -= 1
-    # X out all spots diagonally up to the right
-    c = col + 1
-    for r in range(row - 1, -1, -1):
-        if c >= len(board):
-            break
-        board[r][c] = "x"
-        c += 1
-    # X out all spots diagonally down to the left
-    c = col - 1
-    for r in range(row + 1, len(board)):
-        if c < 0:
-            break
-        board[r][c] = "x"
-        c -= 1
-
-
-def recursive_solve(board, row, queens, solutions):
-    """Recursively solve an N-queens puzzle.
-    Args:
-        board (list): The current working chessboard.
-        row (int): The current working row.
-        queens (int): The current number of placed queens.
-        solutions (list): A list of lists of solutions.
-    Returns:
-        solutions
-    """
-    if queens == len(board):
-        solutions.append(get_solution(board))
-        return (solutions)
-
-    for c in range(len(board)):
-        if board[row][c] == " ":
-            tmp_board = board_deepcopy(board)
-            tmp_board[row][c] = "Q"
-            xout(tmp_board, row, c)
-            solutions = recursive_solve(tmp_board, row + 1,
-                                        queens + 1, solutions)
-
-    return (solutions)
+def main():
+    """ Main function """
+    args = sys.argv
+    if len(args) != 2:
+        print("Usage: nqueens N")
+        exit(1)
+    n = args[1]
+    check_args(n)
+    solutions = n_queens(int(n))
+    for solution in solutions:
+        print(solution)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: nqueens N")
-        sys.exit(1)
-    if sys.argv[1].isdigit() is False:
-        print("N must be a number")
-        sys.exit(1)
-    if int(sys.argv[1]) < 4:
-        print("N must be at least 4")
-        sys.exit(1)
-
-    board = init_board(int(sys.argv[1]))
-    solutions = recursive_solve(board, 0, 0, [])
-    for sol in solutions:
-        print(sol)
+    main()
